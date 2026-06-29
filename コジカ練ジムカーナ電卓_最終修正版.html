@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>コジカ練ジムカーナ電卓</title>
+<style>
+body{margin:0;background:#0b1020;color:#fff;font-family:system-ui,sans-serif}
+.wrap{max-width:760px;margin:auto;padding:10px}
+.card{background:linear-gradient(180deg,#18223f,#12192d);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+.title{margin:0 0 8px;font-size:20px;font-weight:700;white-space:nowrap}
+label{display:block;color:#9db2ff;font-size:13px;margin-bottom:4px}
+input{width:100%;padding:12px;border-radius:12px;border:1px solid #31406d;background:#0f1730;color:#fff;font-size:28px;box-sizing:border-box}
+.preview{color:#9db2ff;font-size:18px;margin:4px 0 10px}
+.metric{display:flex;justify-content:space-between;align-items:baseline;padding:2px 0}
+.metricLabel{font-size:15px;color:#9fb0d6}
+.big{font-size:34px;font-weight:800;line-height:1}
+.small{color:#9fb0d6;font-size:11px}
+table{width:100%;border-collapse:collapse}
+td,th{padding:8px 6px;border-bottom:1px solid #243356}
+.right{text-align:right}
+h2{margin:0 0 6px;font-size:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="card">
+<div class="title">🏁 コジカ練ジムカーナ電卓</div>
+
+<label>TOP TIME</label>
+<input id="top" inputmode="numeric" placeholder="110111">
+<div id="topPreview" class="preview">0分00秒000</div>
+
+<label>YOUR TIME</label>
+<input id="mine" inputmode="numeric" placeholder="110111">
+<div id="minePreview" class="preview">0分00秒000</div>
+
+<div class="small">入力すると自動計算</div>
+</div>
+
+<div class="card">
+<div class="metric">
+<div class="metricLabel">トップタイム比</div>
+<div id="ratio" class="big">0.00%</div>
+</div>
+
+<div class="metric">
+<div class="metricLabel">トップまで</div>
+<div id="gap" class="big">0.000秒</div>
+</div>
+</div>
+
+<div class="card">
+<h2>トップタイム比 目安</h2>
+<div id="table"></div>
+</div>
+
+</div>
+
+<script>
+function parseTime(v){
+ v=(v||"").replace(/\D/g,"");
+ if(!v) return null;
+
+ if(v.length<=5){
+   return Number(v.slice(0,-3)||0)+Number(v.slice(-3))/1000;
+ }
+
+ const ms = Number(v.slice(-3));
+ const sec = Number(v.slice(-5,-3));
+ const min = Number(v.slice(0,-5));
+ return min*60 + sec + ms/1000;
+}
+
+function fmt(sec){
+ sec = sec ?? 0;
+ if(!isFinite(sec)) sec=0;
+ const m=Math.floor(sec/60);
+ const s=Math.floor(sec%60);
+ const ms=Math.round((sec-Math.floor(sec))*1000);
+ return `${m}分${String(s).padStart(2,"0")}秒${String(ms).padStart(3,"0")}`;
+}
+
+function update(){
+ const topInput=document.getElementById("top").value;
+ const myInput=document.getElementById("mine").value;
+
+ const top=parseTime(topInput);
+ const mine=parseTime(myInput);
+
+ document.getElementById("topPreview").textContent=fmt(top);
+ document.getElementById("minePreview").textContent=fmt(mine);
+
+ let ratio="0.00%";
+ let gap="0.000秒";
+
+ if(top !== null && mine !== null && top > 0){
+   ratio=((mine/top)*100).toFixed(2)+"%";
+   gap=(mine-top).toFixed(3)+"秒";
+ }
+
+ document.getElementById("ratio").textContent=ratio;
+ document.getElementById("gap").textContent=gap;
+
+ const levels=[105,110,115,120,130,140,150];
+ let rows="<table>";
+ rows+="<tr><th>比率</th><th>タイム</th></tr>";
+
+ for(const lv of levels){
+   rows += `<tr><td>${lv}%</td><td class="right">${fmt((top||0)*lv/100)}</td></tr>`;
+ }
+
+ rows+="</table>";
+ document.getElementById("table").innerHTML=rows;
+}
+
+document.getElementById("top").addEventListener("input", update);
+document.getElementById("mine").addEventListener("input", update);
+
+update();
+</script>
+
+</body>
+</html>
